@@ -1,1 +1,1 @@
-# gaspump-ton-sdk
+# GasPump SDK
