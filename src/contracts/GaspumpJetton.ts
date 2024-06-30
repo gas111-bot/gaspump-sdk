@@ -3,6 +3,7 @@ import { JettonWallet } from './JettonWallet';
 import { TradeState } from './TradeState';
 
 
+// loaders
 function loadTupleBondingCurveParams(source: TupleReader) {
     let _mathScale = source.readBigNumber();
     let _coinScale = source.readBigNumber();
@@ -46,6 +47,7 @@ function loadTupleFullJettonData(source: TupleReader) {
 }
 
 
+// messages
 export type BondingCurveBuy = {
     $$type: 'BondingCurveBuy';
     doBuy: boolean;
@@ -61,6 +63,7 @@ export function storeBondingCurveBuy(src: BondingCurveBuy) {
 }
 
 
+// main
 export class GaspumpJetton implements Contract {
     readonly address: Address;
 
@@ -178,7 +181,7 @@ export class GaspumpJetton implements Contract {
         return result;
     }
 
-    async estimateBuyJettonAmount(provider: ContractProvider, tonAmount: bigint) {
+    async getEstimateBuyJettonAmount(provider: ContractProvider, tonAmount: bigint) {
         let builder = new TupleBuilder();
         builder.writeNumber(tonAmount);
         let source = (await provider.get('getBuyAmount', builder.build())).stack;
@@ -186,7 +189,7 @@ export class GaspumpJetton implements Contract {
         return result;
     }
 
-    async estimateSellTonAmount(provider: ContractProvider, jettonAmount: bigint) {
+    async getEstimateSellTonAmount(provider: ContractProvider, jettonAmount: bigint) {
         let builder = new TupleBuilder();
         builder.writeNumber(jettonAmount);
         let source = (await provider.get('getSellAmount', builder.build())).stack;
