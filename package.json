@@ -1,17 +1,30 @@
 {
   "name": "@gaspump/sdk",
-  "version": "0.0.1",
+  "version": "0.0.7",
   "description": "GasPump SDK",
-  "main": "index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gas111-bot/gaspump-sdk.git"
   },
   "keywords": [
     "gaspump",
     "ton"
   ],
-  "author": "",
+  "author": "GasPump",
   "license": "ISC",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@ton/core": "~0.56.3"
+  },
   "devDependencies": {
     "@ton/core": "~0.56.3",
     "@ton/crypto": "^3.2.0",
