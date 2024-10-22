@@ -30,7 +30,6 @@ async function main() {
     const jettonWalletAddress = await gaspumpJetton.getJettonWalletAddress(wallet.address);
     let jettonWallet = tonClient.open(JettonWallet.createFromAddress(jettonWalletAddress));
 
-
     // buy some jettons
     const tonAmount = toNano("1.0");
     const buyTonAmount = calcBuyTonAmount(tonAmount);
@@ -41,6 +40,7 @@ async function main() {
     let seqno = await wallet.getSeqno()
     await gaspumpJetton.sendBuy(sender, {
         tonAmount: buyTonAmount,
+        slippage: 0.1,  // 10% slippage
         doCheckTradeState: true,
     });
     await waitUntilWalletSeqnoChanges(wallet, seqno)

@@ -53,12 +53,26 @@ export type BondingCurveBuy = {
     doBuy: boolean;
 }
 
+export type BondingCurveBuyWithSlippage = {
+    $$type: 'BondingCurveBuy';
+    doBuy: boolean;
+    limit?: bigint | null;
+}
 
 export function storeBondingCurveBuy(src: BondingCurveBuy) {
     return (builder: Builder) => {
         let b_0 = builder;
         b_0.storeUint(1825825968, 32);
         b_0.storeBit(src.doBuy);
+    };
+}
+
+export function storeBondingCurveBuyWithSlippage(src: BondingCurveBuyWithSlippage) {
+    return (builder: Builder) => {
+        let b_0 = builder;
+        b_0.storeUint(1825825968, 32);
+        b_0.storeBit(src.doBuy);
+        if (src.limit !== null && src.limit !== undefined) { b_0.storeBit(true).storeInt(src.limit, 257); } else { b_0.storeBit(false); }
     };
 }
 
@@ -79,26 +93,71 @@ export class GaspumpJetton implements Contract {
     async sendBuy(
         provider: ContractProvider,
         via: Sender,
-        { tonAmount, doCheckTradeState = true }: { tonAmount: bigint, doCheckTradeState?: boolean }
+        {
+        tonAmount,
+        slippage = null,  // if null, no slippage
+        doCheckTradeState = true,
+        contractVersion = null,  // if null, contract version will be detected automatically
+        }: {
+        tonAmount: bigint,
+        slippage?: number | null,
+        doCheckTradeState?: boolean,
+        contractVersion?: bigint | null,
+        }
     ) {
         if (tonAmount < toNano('0.3')) {
             throw new Error(`Minimum amount is 0.3 TON`);
         }
 
+        let fullJettonData = null;
+
         if (doCheckTradeState) {
-            const fullJettonData = await this.getFullJettonData(provider);
+            if (fullJettonData === null) {
+                fullJettonData = await this.getFullJettonData(provider);
+            }
+
             if (fullJettonData.tradeState !== TradeState.BONDING_CURVE) {
                 throw new Error('Trade state is not BONDING_CURVE');
             }
         }
 
-        // send
-        const body = beginCell().store(
-            storeBondingCurveBuy({
-                $$type: 'BondingCurveBuy',
-                doBuy: true,
-        })).endCell();
+        if (contractVersion === null) {
+            if (fullJettonData === null) {
+                fullJettonData = await this.getFullJettonData(provider);
+            }
 
+            contractVersion = fullJettonData.version;
+        }
+
+        // build body
+        let body: Cell;
+
+        if (contractVersion < 5n) {
+            // no slippage before version 5
+            body = beginCell().store(
+                storeBondingCurveBuy({
+                    $$type: 'BondingCurveBuy',
+                    doBuy: true,
+            })).endCell();
+        } else {
+            let limit: bigint | null = null;
+
+            if (slippage === null) {
+                limit = null;
+            } else {
+                const estimatedBuyJettonAmount = await this.getEstimateBuyJettonAmount(provider, tonAmount);
+                limit = BigInt(Math.floor(Number(estimatedBuyJettonAmount) * (1 - slippage)));
+            }
+
+            body = beginCell().store(
+                storeBondingCurveBuyWithSlippage({
+                    $$type: 'BondingCurveBuy',
+                    doBuy: true,
+                    limit: limit,
+            })).endCell();
+        }
+
+        // send
         await provider.internal(via, {
             value: tonAmount,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
