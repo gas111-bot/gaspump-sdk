@@ -29,18 +29,18 @@ import { WalletContractV4, TonClient } from '@ton/ton';
 import { Address, toNano, fromNano } from '@ton/core';
 import { mnemonicToPrivateKey } from "@ton/crypto";
 
-import { GaspumpJetton, JettonWallet, calcBuyTonAmount, waitUntilContractIsDeployed, waitUntilWalletSeqnoChanges } from '@gaspump/sdk';
+import { GaspumpJetton } from '../src/contracts/GaspumpJetton';
+import { JettonWallet } from '../src/contracts/JettonWallet';
+import { calcBuyTonAmount, waitUntilContractIsDeployed, waitUntilWalletSeqnoChanges } from '../src/utils/utils';
 
 
 const tonClient = new TonClient({
     endpoint: 'https://toncenter.com/api/v2/jsonRPC',
-    apiKey: 'API_KEY',  // from @tonapibot
+    // apiKey: '',
 })
 
 async function main() {
-    // example: ts-node buy_and_sell.ts <jetton_address> <wallet_mnemonics>
-
-    // parse args
+    // Read command-line arguments
     const args = process.argv.slice(2);
     const jettonAddress = Address.parse(args[0]);
     const walletMnemonics = args[1];
@@ -67,6 +67,7 @@ async function main() {
     let seqno = await wallet.getSeqno()
     await gaspumpJetton.sendBuy(sender, {
         tonAmount: buyTonAmount,
+        slippage: 0.1,  // 10% slippage
         doCheckTradeState: true,
     });
     await waitUntilWalletSeqnoChanges(wallet, seqno)
