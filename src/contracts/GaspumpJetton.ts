@@ -5,14 +5,14 @@ import { TradeState } from './TradeState';
 
 // loaders
 function loadTupleBondingCurveParams(source: TupleReader) {
-    let _mathScale = source.readBigNumber();
-    let _coinScale = source.readBigNumber();
-    let _alpha = source.readBigNumber();
-    let _beta = source.readBigNumber();
-    let _maxSupply = source.readBigNumber();
-    let _bondingCurveMaxSupply = source.readBigNumber();
-    let _maxTonAmount = source.readBigNumber();
-    let _dexFeeAmount = source.readBigNumber();
+    let _mathScale = source.pop();
+    let _coinScale = source.pop();
+    let _alpha = source.pop();
+    let _beta = source.pop();
+    let _maxSupply = source.pop();
+    let _bondingCurveMaxSupply = source.pop();
+    let _maxTonAmount = source.pop();
+    let _dexFeeAmount = source.pop();
     return { $$type: 'BondingCurveParams' as const, mathScale: _mathScale, coinScale: _coinScale, alpha: _alpha, beta: _beta, maxSupply: _maxSupply, bondingCurveMaxSupply: _bondingCurveMaxSupply, maxTonAmount: _maxTonAmount, dexFeeAmount: _dexFeeAmount };
 }
 
